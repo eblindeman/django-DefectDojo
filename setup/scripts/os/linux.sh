@@ -188,18 +188,6 @@ function ubuntu_db_config() {
         fi
     fi
 
-    # TODO: Remove the debug junk below
-#    echo "DB_ROOT=$DB_ROOT"
-#    echo "DB_USER=$DB_USER"
-#    echo "DB_PASS=$DB_PASS"
-#    echo "DB_HOST=$DB_HOST"
-#    echo "DB_PORT=$DB_PORT"
-#    echo "DB_NAME=$DB_NAME"
-#    echo "DEV_DB_PASS=$DEV_DB_PASS"
-#    echo "DB URL is:"
-#    echo "$DD_DATABASE_URL"
-#    echo "DB_EXISTS=$DB_EXISTS"
-#    echo ""
 }
 
 function ubuntu_os_packages() {
@@ -223,7 +211,7 @@ function ubuntu_os_packages() {
     echo "=============================================================================="
     echo ""
     sudo apt update
-    sudo apt install -y apt-transport-https libjpeg-dev gcc libssl-dev python3-dev python3-pip nodejs yarn build-essential
+    sudo apt install -y apt-transport-https libjpeg-dev gcc libssl-dev $PY-dev $PY-pip nodejs yarn build-essential
     echo ""
 }
 
@@ -265,8 +253,12 @@ function ubuntu_wkhtml_install() {
 function urlenc() {
     # URL encode values used in the DB URL to keep certain chars from breaking things
 	local STRING="${1}"
-	echo `python3 -c "import urllib.parse as ul; print(ul.quote_plus('$STRING'))"`
-	#echo `python -c "import sys, urllib as ul; print ul.quote_plus('$STRING')"`
+    # Run correct python version for URL encoding
+    if [ "$PY" = python3 ]; then
+        echo `python3 -c "import urllib.parse as ul; print(ul.quote_plus('$STRING'))"` 
+    else
+	    echo `python -c "import sys, urllib as ul; print ul.quote_plus('$STRING')"`
+    fi
 }
 
 function create_dojo_settings() {
@@ -290,8 +282,6 @@ function create_dojo_settings() {
         # mysql://USER:PASSWORD@HOST:PORT/NAME
         SAFE_URL=$(urlenc "$DB_USER")":"$(urlenc "$DB_PASS")"@"$(urlenc "$DB_HOST")":"$(urlenc "$DB_PORT")"/"$(urlenc "$DB_NAME")
         DD_DATABASE_URL="mysql://$SAFE_URL"
-        # TODO
-        echo "DD_DATABASE_URL is $DD_DATABASE_URL"
         ;;
         "PostgreSQL")
         # postgres://USER:PASSWORD@HOST:PORT/NAME
@@ -342,60 +332,82 @@ function ubuntu_dojo_install() {
     echo ""
 
     # TODO: Clean this function up a bit more
-	# Detect if we're in a a virtualenv
-    python3 -c 'import sys; print sys.real_prefix' 2>/dev/null
-    VENV_ACTIVE=$?
+    # Always setup DefectDojo in a virtualenv
+    $PY -m virtualenv --python=/usr/bin/$PY $VIRTUAL_ENV
+    export VIRTUAL_ENV=$VIRTUAL_ENV
+    export PATH="$VIRTUAL_ENV/bin:$PATH"
 
-    # TODO: Decide if we always want to install in a VENV
-    if [ "$VENV_ACTIVE" = "0" ]; then
-        #pip3 install --upgrade pip
-        #pip3 install -r requirements.txt
-        if [ "$DB_TYPE" = MySQL ]; then
-            sudo -H pip3 install -r $SETUP_BASE/mysql.txt
-        #TODO Add PostgreSQL here
-        fi
+    cd $DOJO_SOURCE/setup
+    if [ "$PY" = python3 ]; then
+        # Python3 requirements
+        cp requirements-3.txt requirements.txt
     else
-        #sudo pip3 install --upgrade pip
-        #sudo pip3 install -r requirements.txt
-        if [ "$DB_TYPE" = MySQL ]; then
-            sudo -H pip3 install -r $SETUP_BASE/mysql.txt
-        #TODO Add PostgreSQL here
-        fi
+        # Python 2.x requirements
+        cp requirements-2.txt requirements.txt
     fi
 
-    echo "BEFORE DJANGO JUNK"
-    cd $REPO_BASE
-    python3 manage.py makemigrations dojo
-    python3 manage.py makemigrations --merge --noinput
-    python3 manage.py migrate
+    if [ "$DB_TYPE" = MySQL ]; then
+        $PIP install -r $SETUP_BASE/mysql.txt
+    #else
+    #TODO Add PostgreSQL here
+    fi
 
-    python3 manage.py createsuperuser --noinput --username="$ADMIN_USER" --email="$ADMIN_EMAIL"
-    $SETUP_BASE/scripts/common/setup-superuser.expect "$ADMIN_USER" "$ADMIN_PASS"
-    #exit
-    
+	# Detect if we're in a a virtualenv
+    #$PY -c 'import sys; print sys.real_prefix' 2>/dev/null
+    #VENV_ACTIVE=$?
+
+    #if [ "$VENV_ACTIVE" = "0" ]; then
+    #    #pip3 install --upgrade pip
+    #    #pip3 install -r requirements.txt
+    #    if [ "$DB_TYPE" = MySQL ]; then
+    #        sudo -H $PIP install -r $SETUP_BASE/mysql.txt
+    #    # Add PostgreSQL here
+    #    fi
+    #else
+    #    #sudo pip3 install --upgrade pip
+    #    #sudo pip3 install -r requirements.txt
+    #    if [ "$DB_TYPE" = MySQL ]; then
+    #        sudo -H $PIP install -r $SETUP_BASE/mysql.txt
+    #    # Add PostgreSQL here
+    #    fi
+    #fi
+
+    cd $REPO_BASE
+    $PY manage.py makemigrations --merge --noinput
+    $PY manage.py makemigrations dojo
+    $PY manage.py migrate
+
+    $PY manage.py createsuperuser --noinput --username="$ADMIN_USER" --email="$ADMIN_EMAIL"
+    # Run the add Django superuser script based on python version
+    if [ "$PY" = python3 ]; then
+        $SETUP_BASE/scripts/common/setup-superuser.expect "$ADMIN_USER" "$ADMIN_PASS"
+    else
+        $SETUP_BASE/scripts/common/setup-superuser-2.expect "$ADMIN_USER" "$ADMIN_PASS"
+    fi
+
 
     if [ "$LOAD_SAMPLE_DATA" = true ]; then
       python3 manage.py loaddata dojo/fixtures/defect_dojo_sample_data.json
     fi
-    
-    python3 manage.py loaddata product_type
-    python3 manage.py loaddata test_type
-    python3 manage.py loaddata development_environment
-    python3 manage.py loaddata system_settings
-    python3 manage.py loaddata benchmark_type
-    python3 manage.py loaddata benchmark_category
-    python3 manage.py loaddata benchmark_requirement
-    python3 manage.py loaddata language_type
-    python3 manage.py loaddata objects_review
-    python3 manage.py loaddata regulation
-    
-    python3 manage.py installwatson
-    python3 manage.py buildwatson
+
+    $PY manage.py loaddata product_type
+    $PY manage.py loaddata test_type
+    $PY manage.py loaddata development_environment
+    $PY manage.py loaddata system_settings
+    $PY manage.py loaddata benchmark_type
+    $PY manage.py loaddata benchmark_category
+    $PY manage.py loaddata benchmark_requirement
+    $PY manage.py loaddata language_type
+    $PY manage.py loaddata objects_review
+    $PY manage.py loaddata regulation
+
+    $PY manage.py buildwatson
+    $PY manage.py installwatson
 
     # Install yarn packages
     cd components && yarn && cd ..
 
-    python3 manage.py collectstatic --noinput
+    $PY manage.py collectstatic --noinput
 }
 
 function install_linux() {

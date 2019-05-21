@@ -59,7 +59,7 @@ setup.bash relies on the following files and directory structure:
 
 ```
 setup.bash => the main install program
-├── entrypoint_scripts
+├── scripts
     ├── common
         ├── config-vars.sh
         ├── cmd-args.sh
@@ -80,17 +80,17 @@ Install configuration is in config-vars.sh contains the following install option
 * DB_HOST [localhost] - Database hostname where the DefectDojo database is located
 * DB_PORT [3306] - Port database is listening on, default port is for the default database MySQL
 * DB_DROP_EXISTING [true] - If the database name already exists in database server for DefectDojo, drop that database if this is true.  If false and a database name match occurs, throw an error and exit the installer.
-OS_USER=${OS_USER:-"dojo-srv"}
-OS_PASS=${OS_PASS:-"wahlieboojoKa8aitheibai3"}
-OS_GROUP=${OS_GROUP:-"dojo-srv"}
-INSTALL_ROOT=${INSTALL_ROOT:-"/opt/dojo"}
-DOJO_SOURCE=${DOJO_SOURCE:-"$INSTALL_ROOT/django-DefectDojo"}
-DOJO_FILES=${DOJO_FILES:-"$INSTALL_ROOT/local"}
-MEDIA_ROOT=${MEDIA_ROOT:-"$DOJO_FILES/media"}
-STATIC_ROOT=${STATIC_ROOT:-"$DOJO_FILES/static"}
-ADMIN_USER=${ADMIN_USER:-"admin"}
-ADMIN_PASS=${ADMIN_PASS:-"admin"}
-ADMIN_EMAIL=${ADMIN_EMAIL:-"ed@example.com"}
+* OS_USER=${OS_USER:-"dojo-srv"}
+* OS_PASS=${OS_PASS:-"wahlieboojoKa8aitheibai3"}
+* OS_GROUP=${OS_GROUP:-"dojo-srv"}
+* INSTALL_ROOT=${INSTALL_ROOT:-"/opt/dojo"}
+* DOJO_SOURCE=${DOJO_SOURCE:-"$INSTALL_ROOT/django-DefectDojo"}
+* DOJO_FILES=${DOJO_FILES:-"$INSTALL_ROOT/local"}
+* MEDIA_ROOT=${MEDIA_ROOT:-"$DOJO_FILES/media"}
+* STATIC_ROOT=${STATIC_ROOT:-"$DOJO_FILES/static"}
+* ADMIN_USER=${ADMIN_USER:-"admin"}
+* ADMIN_PASS=${ADMIN_PASS:-"admin"}
+* ADMIN_EMAIL=${ADMIN_EMAIL:-"ed@example.com"}
 
 Configuration items for setup.py are in template-env in ./dojo/settings/ and contain
 

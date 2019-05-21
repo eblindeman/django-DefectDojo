@@ -52,7 +52,8 @@ DOJO_FILES=${DOJO_FILES:-"$INSTALL_ROOT/local"}
 MEDIA_ROOT=${MEDIA_ROOT:-"$DOJO_FILES/media"}
 STATIC_ROOT=${STATIC_ROOT:-"$DOJO_FILES/static"}
 DOJO_ROOT=${DOJO_ROOT:-"$DOJO_SOURCE/dojo"}
-#appPath: /opt/dojo/django-DefectDojo/app 
+VIRTUAL_ENV=$INSTALL_ROOT
+#appPath: /opt/dojo/django-DefectDojo/app
 
 ########################################################################
 # DefectDojo settings and app vars                                     #

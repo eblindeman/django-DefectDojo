@@ -165,7 +165,7 @@ bootstrap_install() {
         echo ""
 	    DEBIAN_FRONTEND=noninteractive apt update
 	    DEBIAN_FRONTEND=noninteractive apt -y upgrade
-	    DEBIAN_FRONTEND=noninteractive apt -y install curl sudo python3 expect wget git gnupg2
+	    DEBIAN_FRONTEND=noninteractive apt -y install curl sudo $PY $PY-virtualenv expect wget git gnupg2
 	    ;;
 	    "centos")
         echo "=============================================================================="
@@ -188,9 +188,10 @@ bootstrap_install() {
 check_python_version() {
     echo ""
     echo "=============================================================================="
-    echo "  Checking that Python 3+ is installed"
+    echo "  Checking that $PY is installed"
     echo "=============================================================================="
     echo ""
+    #TODO - wrap this in a case statement on $PY to check for ver 2 or 3 depending...
     if command -v python3 &>/dev/null; then
         PYTHON_VER=`python3 -V`
         echo "=============================================================================="

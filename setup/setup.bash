@@ -14,6 +14,10 @@
 # - Updates to a new version of DefectDojo
 #
 
+# Set the python version for the installer
+PY="python3"
+PIP="pip3"
+
 # Make sure setup.bash is run from the same directory it is located in
 cd ${0%/*}  # same as `cd "$(dirname "$0")"` without relying on dirname
 SETUP_BASE=`pwd`
@@ -81,9 +85,9 @@ echo "DB URL is:"
 echo "$DD_DATABASE_URL"
 echo "End of refactoring"
 
-echo "When you're ready to start the DefectDojo server, type in this directory:"
+echo "When you're ready to start the DefectDojo server, type in $DOJO_SOURCE:"
 echo ""
-echo "    python3 manage.py runserver"
+echo "    $VIRTUAL_ENV/bin/$PY manage.py runserver"
 
 ## Echo out important generated variables/passwords from this install
 
@@ -109,7 +113,7 @@ echo "        SECURE_SSL_REDIRECT = True"
 echo "        SECURE_BROWSER_XSS_FILTER = True"
 echo "        django.middleware.security.SecurityMiddleware"
 echo
-echo "When you're ready to start the DefectDojo server, type in this directory:"
+echo "When you're ready to start the DefectDojo server, type in $DOJO_SOURCE:"
 echo
-echo "    python manage.py runserver"
+echo "    $VIRTUAL_ENV/bin/$PY manage.py runserver"
 echo
